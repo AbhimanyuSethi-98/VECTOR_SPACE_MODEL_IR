@@ -376,16 +376,16 @@ def champion_list(query_doc, posting_dict,top_k): # tf_score_matrix,query_idf
     query_doc  = [ word for word in query_doc if word in posting_dict.keys()] #List of terms that are in query as well as posting lists
     for word in query_doc:
         query_championlist[word] = sorted(posting_dict[word], key=lambda x:x[1])[::-1] #In decreasing order of tf
-        print(word + ": ")
-        print(query_championlist[word])
-        print("\n")
-    pruned_champion_list = {k:query_championlist[k][:15] for k in query_doc}
-    print(pruned_champion_list)
+        # print(word + ": ")
+        # print(query_championlist[word])
+        # print("\n")
+        query_championlist[word] = query_championlist[word][:15]
+    print(query_championlist)
 
     doc_id_cl = set()
 
     for word in query_doc:
-        for k in pruned_champion_list[word]:
+        for k in query_championlist[word]:
             doc_id_cl.add(k[0]) #we take the union of the champion lists for each of the terms comprising the query. 
             #fWe now restrict cosine computation to only these documents
     print(doc_id_cl)
@@ -472,6 +472,8 @@ def main():
 
     while 1:
         query = input('<Enter your query:>\n')
+        query = query_pre_process(query)
+        #print(query)
         # takes query as a string
         
         inverted_index = {}
@@ -485,7 +487,7 @@ def main():
         with open(folder+'/freq_list.json') as f2:
             freq = json.load(f2)
 
-        with open(folder+'/title_list_file.json') as f3:
+        with open(folder+'/titles_list.json') as f3:
             title_list = json.load(f3)
         
         # this file stores the dictionary(like invertd index) but instead of posting list as values, its values are list of similar words
@@ -523,11 +525,10 @@ def main():
                 improved1(query, inverted_index, freq, title_list)	
         
         elif option=='6' :
-            res = champion_list(query.split(' '), inverted_index, 10)#tf_score_matrix,query_idf,10)
+            res = champion_list(query, inverted_index, 10)#tf_score_matrix,query_idf,10)
             for doc in res:
                 #print(doc)
                 print("DocumentID: " + str(doc[0]).ljust(5) + ", Score: " + (str(round(doc[1], 3))).ljust(5) + ", Title: " + str(title_list[doc[0]]))
-                
 
         elif option=='0' :
             break
