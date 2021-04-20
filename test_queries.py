@@ -234,14 +234,12 @@ def cal_tfidf(doc_ids , posting_dict):
     '''
     # if(os.path.exists("tf.csv")):
     #     return pd.read_csv("tf.csv")
-    total_docs = len(doc_ids)
     row_name = doc_ids
     col_name = posting_dict.keys()
     tf_score_matrix = pd.DataFrame(0, index = row_name, columns = col_name)
     for word in posting_dict:
         for docno in posting_dict[word]:
-            temp = docno[1]
-            tf_score_matrix[word][docno[0]] = 1 + np.log10(temp)
+            tf_score_matrix[word][docno[0]] = 1 + np.log10(docno[1])
     # tf_score_matrix.to_csv("tf.csv")
     return tf_score_matrix
 
@@ -380,7 +378,7 @@ def champion_list(query_doc, posting_dict,top_k): # tf_score_matrix,query_idf
         # print(query_championlist[word])
         # print("\n")
         query_championlist[word] = query_championlist[word][:15]
-    print(query_championlist)
+    #print(query_championlist)
 
     doc_id_cl = set()
 
@@ -388,7 +386,9 @@ def champion_list(query_doc, posting_dict,top_k): # tf_score_matrix,query_idf
         for k in query_championlist[word]:
             doc_id_cl.add(k[0]) #we take the union of the champion lists for each of the terms comprising the query. 
             #fWe now restrict cosine computation to only these documents
-    print(doc_id_cl)
+    #print(doc_id_cl)
+
+    
     tf_score_matrix = cal_tfidf(doc_id_cl, posting_dict)
     query_idf  = cal_query_vector(query_doc,posting_dict,len(posting_dict))
 
