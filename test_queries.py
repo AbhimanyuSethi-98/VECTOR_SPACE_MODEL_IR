@@ -192,7 +192,7 @@ def search(query, inverted_index, freq, title_list):
     for i in range(10):
         if i == len(title_list):
             break
-        print(str(i) + ". DocumentID: " + (str(scores[i][0])).ljust(5) + ", Score: " + (str(round(scores[i][1], 3))).ljust(5) + ", Title: " + str(title_list[scores[i][0]])) 
+        print(str(i+1) + ". DocumentID: " + (str(scores[i][0])).ljust(8) + " Score: " + (str(round(scores[i][1], 3))).ljust(8) + " Title: " + str(title_list[scores[i][0]])) 
     print("-"*50)
     print('\n')
 
@@ -215,55 +215,46 @@ def improved1(query, inverted_index, freq, title_list):
     for i in range(10):
         if i == len(title_list):
             break
-        print(str(i) + ". DocumentID: " + (str(scores[i][0])).ljust(5) + ", Score: " + (str(round(scores[i][1], 3))).ljust(5) + ", Title: " + str(title_list[scores[i][0]])) 
+        print(str(i+1) + ". DocumentID: " + (str(scores[i][0])).ljust(5) + ", Score: " + (str(round(scores[i][1], 3))).ljust(5) + ", Title: " + str(title_list[scores[i][0]])) 
     print("-"*50)
     print('\n')
 
-def cal_tfidf(doc_ids , posting_dict):
+def cal_doc_vectors(doc_ids , inverted_index):
     ''' 
-    Function to populate tf score matrix for the
+    Function to calculate and populate vectors for the
     documents.
 
-    Scheme used 'lnc' for matrix population.
-    normalization incorporated while calculating 
-    cosine similarity.
+    'lnc' scheme used as specified.
 
-    input parameters: list of doc ids, posting list dictionary
+    Input: list of document ids, inverted index dictionary
 
-    output: tf_score_matrix(dataframe)
+    Output: doc_lnc_df(dataframe) containing document 'lnc' vectors 
     '''
-    # if(os.path.exists("tf.csv")):
-    #     return pd.read_csv("tf.csv")
-    row_name = doc_ids
-    col_name = posting_dict.keys()
-    tf_score_matrix = pd.DataFrame(0, index = row_name, columns = col_name)
-    for word in posting_dict:
-        for docno in posting_dict[word]:
-            tf_score_matrix[word][docno[0]] = 1 + np.log10(docno[1])
-    # tf_score_matrix.to_csv("tf.csv")
-    return tf_score_matrix
+    doc_lnc_df = pd.DataFrame(0, index = doc_ids, columns = inverted_index.keys())
+    for word in inverted_index:
+        for docno in inverted_index[word]:
+            doc_lnc_df[word][docno[0]] = 1 + np.log10(docno[1])
+    return doc_lnc_df
 
-def cal_query_vector(query_doc,posting_dict,total_docs):
+def cal_query_vectors(query_terms,inverted_index,total_docs):
 
     '''
-    Function to calculate query vector using scheme
-    'ltc'
-    normalization incorporated while calculating 
-    cosine similarity.
+    Function to calculate and populate query vectors using
+    'ltc' scheme
 
-    input parameters: vector of query words, posting list dictionary,
-    total number of docum
+    Input: vector of query terms, inverted index dictionary,
+    total number of documents
 
-    output: query vector with idf weigthing
+    Output: dataframe containing query vectors with idf weigthing (ltc scheme)
 
     '''
-    query_idf =  pd.DataFrame(columns = posting_dict.keys())
-    query_idf.loc[0] = np.zeros(len(posting_dict))
-    for word in query_doc:
-        if(word not in posting_dict.keys()):
+    query_ltc_df =  pd.DataFrame(columns = inverted_index.keys())
+    query_ltc_df.loc[0] = np.zeros(len(inverted_index))
+    for word in query_terms:
+        if(word not in inverted_index.keys()):
             continue
-        query_idf[word] = np.log10((total_docs/len(posting_dict[word])))
-    return query_idf
+        query_ltc_df[word] = np.log10((total_docs/len(inverted_index[word])))
+    return query_ltc_df
     
 
 
@@ -339,7 +330,7 @@ def improved2(query, inverted_index, freq, title_list):
     for i in range(10):
         if i == len(title_list):
             break
-        print(str(i) + ". DocumentID: " + (str(scores[i][0])).ljust(5) + ", Score: " + (str(round(scores[i][1], 3))).ljust(5) + ", Title: " + str(title_list[scores[i][0]])) 
+        print(str(i+1) + ". DocumentID: " + (str(scores[i][0])).ljust(5) + ", Score: " + (str(round(scores[i][1], 3))).ljust(5) + ", Title: " + str(title_list[scores[i][0]])) 
     print("-"*50)
     print('\n')
 
@@ -360,44 +351,44 @@ def improved2(query, inverted_index, freq, title_list):
     for i in range(10):
         if i == len(title_list):
             break
-        print(str(i) + ". DocumentID: " + (str(scores[i][0])).ljust(5) + ", Score: " + (str(round(scores[i][1], 3))).ljust(5) + ", Title: " + str(title_list[scores[i][0]])) 
+        print(str(i+1) + ". DocumentID: " + (str(scores[i][0])).ljust(5) + ", Score: " + (str(round(scores[i][1], 3))).ljust(5) + ", Title: " + str(title_list[scores[i][0]])) 
     print("-"*50)
     print('\n')
     '''
             
-def champion_list(query_doc, posting_dict,top_k): # tf_score_matrix,query_idf
+def champion_list(query_terms, inverted_index,top_k): # doc_lnc_df,query_ltc_df
     '''
-    Function to incorporate improvement 1: champion list
-    Return top k based on cosine similarit.
+    Function implementing Improvement #1: Champion Lists
+    Returns 'top_k' Document ID's based on cosine similarity.
     '''
-    query_championlist = {}
-    query_doc  = [ word for word in query_doc if word in posting_dict.keys()] #List of terms that are in query as well as posting lists
-    for word in query_doc:
-        query_championlist[word] = sorted(posting_dict[word], key=lambda x:x[1])[::-1] #In decreasing order of tf
+    championList = {}
+    query_terms  = [ word for word in query_terms if word in inverted_index.keys()] #List of terms that are in query as well as posting lists
+    for word in query_terms:
+        championList[word] = sorted(inverted_index[word], key=lambda x:x[1])[::-1] #In decreasing order of tf
         # print(word + ": ")
-        # print(query_championlist[word])
+        # print(championList[word])
         # print("\n")
-        query_championlist[word] = query_championlist[word][:15]
-    #print(query_championlist)
+        championList[word] = championList[word][:15]
+    #print(championList)
 
-    doc_id_cl = set()
+    cl_doc_ids = set()
 
-    for word in query_doc:
-        for k in query_championlist[word]:
-            doc_id_cl.add(k[0]) #we take the union of the champion lists for each of the terms comprising the query. 
+    for word in query_terms:
+        for k in championList[word]:
+            cl_doc_ids.add(k[0]) #we take the union of the champion lists for each of the terms comprising the query. 
             #fWe now restrict cosine computation to only these documents
-    #print(doc_id_cl)
+    #print(cl_doc_ids)
 
     
-    tf_score_matrix = cal_tfidf(doc_id_cl, posting_dict)
-    query_idf  = cal_query_vector(query_doc,posting_dict,len(posting_dict))
+    doc_lnc_df = cal_doc_vectors(cl_doc_ids, inverted_index)
+    query_ltc_df  = cal_query_vectors(query_terms,inverted_index,len(inverted_index))
 
-    cosine_sim_cl = {}
+    cl_cosine_scores = {}
 
-    for docs in doc_id_cl:
-        cosine_sim_cl[docs] = 1 - spatial.distance.cosine(tf_score_matrix.loc[docs], query_idf)
+    for docs in cl_doc_ids:
+        cl_cosine_scores[docs] = 1 - spatial.distance.cosine(doc_lnc_df.loc[docs], query_ltc_df)
 
-    sorted_cosine_cl = sorted(cosine_sim_cl.items(), key=lambda x:x[1])[::-1]
+    sorted_cosine_cl = sorted(cl_cosine_scores.items(), key=lambda x:x[1])[::-1]
 
     return sorted_cosine_cl[:top_k]
 
@@ -459,7 +450,7 @@ def improved2Robust(query, inverted_index, freq, title_list, pklFileName):
     for i in range(10):
         if i == len(title_list):
             break
-        print(str(i) + ". DocumentID: " + (str(scores[i][0])).ljust(5) + ", Score: " + (str(round(scores[i][1], 3))).ljust(5) + ", Title: " + str(title_list[scores[i][0]])) 
+        print(str(i+1) + ". DocumentID: " + (str(scores[i][0])).ljust(5) + " Score: " + (str(round(scores[i][1], 3))).ljust(5) + " Title: " + str(title_list[scores[i][0]])) 
     print("-"*50)
     print('\n')
 
@@ -472,7 +463,6 @@ def main():
 
     while 1:
         query = input('<Enter your query:>\n')
-        query = query_pre_process(query)
         #print(query)
         # takes query as a string
         
@@ -525,10 +515,10 @@ def main():
                 improved1(query, inverted_index, freq, title_list)	
         
         elif option=='6' :
-            res = champion_list(query, inverted_index, 10)#tf_score_matrix,query_idf,10)
+            res = champion_list(query_pre_process(query), inverted_index, 10)#doc_lnc_df,query_ltc_df,10)
             for doc in res:
                 #print(doc)
-                print("DocumentID: " + str(doc[0]).ljust(5) + ", Score: " + (str(round(doc[1], 3))).ljust(5) + ", Title: " + str(title_list[doc[0]]))
+                print("DocumentID: " + str(doc[0]).ljust(8) + " Score: " + (str(round(doc[1], 3))).ljust(8) + " Title: " + str(title_list[doc[0]]))
 
         elif option=='0' :
             break
