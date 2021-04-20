@@ -356,41 +356,48 @@ def improved2(query, inverted_index, freq, title_list):
     print('\n')
     '''
             
-def champion_list(query_terms, inverted_index,top_k): # doc_lnc_df,query_ltc_df
+def champion_list(query_terms, inverted_index,championLists, freq, top_k,title_list): # doc_lnc_df,query_ltc_df
     '''
     Function implementing Improvement #1: Champion Lists
     Returns 'top_k' Document ID's based on cosine similarity.
     '''
-    championList = {}
-    query_terms  = [ word for word in query_terms if word in inverted_index.keys()] #List of terms that are in query as well as posting lists
-    for word in query_terms:
-        championList[word] = sorted(inverted_index[word], key=lambda x:x[1])[::-1] #In decreasing order of tf
-        # print(word + ": ")
-        # print(championList[word])
-        # print("\n")
-        championList[word] = championList[word][:15]
-    #print(championList)
-
+    query_terms = get_query_terms(query_terms)
+    #query_terms  = [ word for word in query_terms if word in inverted_index.keys()] #List of terms that are in query as well as posting lists
     cl_doc_ids = set()
 
+    print("367 \n")
     for word in query_terms:
-        for k in championList[word]:
+        for k in championLists[word]:
             cl_doc_ids.add(k[0]) #we take the union of the champion lists for each of the terms comprising the query. 
             #fWe now restrict cosine computation to only these documents
     #print(cl_doc_ids)
+    cl_doc_ids = list(cl_doc_ids)
+    cl_freq = [freq[i] for i in cl_doc_ids]
 
-    
-    doc_lnc_df = cal_doc_vectors(cl_doc_ids, inverted_index)
-    query_ltc_df  = cal_query_vectors(query_terms,inverted_index,len(inverted_index))
+    query_wt = get_normalized_query_scores(query_terms, cl_freq, championLists)
+    document_wt = get_normalized_doc_weights(query_terms, cl_freq, championLists)
 
-    cl_cosine_scores = {}
+    scores = compute_scores(query_wt, document_wt)
 
-    for docs in cl_doc_ids:
-        cl_cosine_scores[docs] = 1 - spatial.distance.cosine(doc_lnc_df.loc[docs], query_ltc_df)
+    for i in range(10):
+        if i == len(title_list):
+            break
+        print(str(i+1) + ". DocumentID: " + (str(cl_doc_ids[scores[i][0]])).ljust(5) + ", Score: " + (str(round(scores[i][1], 3))).ljust(5) + ", Title: " + str(title_list[cl_doc_ids[scores[i][0]]]))
 
-    sorted_cosine_cl = sorted(cl_cosine_scores.items(), key=lambda x:x[1])[::-1]
+    # print("373 \n")
+    # doc_lnc_df = cal_doc_vectors(cl_doc_ids, inverted_index)
+    # query_ltc_df  = cal_query_vectors(query_terms,inverted_index,len(inverted_index))
+    # print("376 \n")
 
-    return sorted_cosine_cl[:top_k]
+    # cl_cosine_scores = {}
+
+    # for docs in cl_doc_ids:
+    #     cl_cosine_scores[docs] = 1 - spatial.distance.cosine(doc_lnc_df.loc[docs], query_ltc_df)
+    # print("382 \n")
+
+    # sorted_cosine_cl = sorted(cl_cosine_scores.items(), key=lambda x:x[1])[::-1]
+
+    # return sorted_cosine_cl[:top_k]
 
 def improved2Robust(query, inverted_index, freq, title_list, pklFileName):
     # robust version of improved2() Please check that, only dictionary d is new and enforced
@@ -460,32 +467,36 @@ def main():
     
     folder = input('<Enter folder storing the index files (ex- indexFiles)>:\n')
     # default folder name is indexFiles which stores all the indices created by indexing.py
+    inverted_index = {}
+    freq = []
+    title_list = []
+    championLists = {}
+    # these datastructures will be filled by reading the index files
+
+    with open(folder+'/inverted_index_dict.json') as f1:
+        inverted_index = json.load(f1)
+
+    with open(folder+'/freq_list.json') as f2:
+        freq = json.load(f2)
+
+    with open(folder+'/titles_list.json') as f3:
+        title_list = json.load(f3)
+
+    with open(folder+'/champ_list.json') as f4:
+        championLists = json.load(f4)
 
     while 1:
         query = input('<Enter your query:>\n')
         #print(query)
         # takes query as a string
-        
-        inverted_index = {}
-        freq = []
-        title_list = []
-        # these datastructures will be filled by reading the index files
-
-        with open(folder+'/inverted_index_dict.json') as f1:
-            inverted_index = json.load(f1)
-
-        with open(folder+'/freq_list.json') as f2:
-            freq = json.load(f2)
-
-        with open(folder+'/titles_list.json') as f3:
-            title_list = json.load(f3)
+    
         
         # this file stores the dictionary(like invertd index) but instead of posting list as values, its values are list of similar words
         # ex: dict['enlighten'] =  ['enlighten', 'expound', 'inspire']
-        pklFileName = folder+'/relatedWords.pickle'
+        #pklFileName = folder+'/relatedWords.pickle'
         
         # which out of 5+1 options to be executed on the query  		   
-        option = input('<Enter Option:- \n\t1:Normal Part1 retreival, \n\t2:Improvement1, \n\t3:Improvement2, \n\t4:All three, \n\t5:All three but Lengthy \n\t6:ChampionList \n\t0:exit>\n')
+        option = input('<Enter Option:- \n\t1:Normal Part1 retreival, \n\t2:Improvement1, \n\t3:Improvement2, \n\t4:All three, \n\t5:All three but Lengthy \n\t6:championLists\n\t0:exit>\n')
         startT = time.time()	# to check total time taken
         if option=='1' :
             search(query, inverted_index, freq, title_list)		# model1  retreival model (tf-idf)
@@ -515,10 +526,11 @@ def main():
                 improved1(query, inverted_index, freq, title_list)	
         
         elif option=='6' :
-            res = champion_list(query_pre_process(query), inverted_index, 10)#doc_lnc_df,query_ltc_df,10)
-            for doc in res:
-                #print(doc)
-                print("DocumentID: " + str(doc[0]).ljust(8) + " Score: " + (str(round(doc[1], 3))).ljust(8) + " Title: " + str(title_list[doc[0]]))
+            #res = 
+            champion_list(query_pre_process(query), inverted_index, championLists, freq, 10,title_list)#doc_lnc_df,query_ltc_df,10)
+            # for doc in res:
+            #     #print(doc)
+            #     print("DocumentID: " + str(doc[0]).ljust(8) + " Score: " + (str(round(doc[1], 3))).ljust(8) + " Title: " + str(title_list[doc[0]]))
 
         elif option=='0' :
             break

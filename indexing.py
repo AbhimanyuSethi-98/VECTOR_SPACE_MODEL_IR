@@ -80,6 +80,21 @@ def generate_inverted_index(termFrequencies):
 
     return inverted_index
 
+def generate_champion_lists(inverted_index,top_r): # doc_lnc_df,query_ltc_df
+    '''
+    Function implementing Improvement #1: Champion Lists
+    Returns 'top_r' Document ID's based on cosine similarity.
+    '''
+    championLists = {}
+    for word in inverted_index.keys():
+        championLists[word] = sorted(inverted_index[word], key=lambda x:x[1])[::-1] #In decreasing order of tf
+        # print(word + ": ")
+        # print(championLists[word])
+        # print("\n")
+        championLists[word] = championLists[word][:top_r]
+    #print(championLists)
+
+    return championLists
 
 
 
@@ -99,6 +114,7 @@ def main(arg1, arg2):
     tfs = generate_term_frequencies(processed_docs) #tfs denotes a list of document-wise frequencies of unigrams as dictionaries (term frequencies) 
     inverted_index = generate_inverted_index(tfs) # the constructed inverted index dictionary with 
     #KEY: Term itself, and VALUE:list of [Document_ID,Term frequency] lists | ex: "finance": [[0, 3], [60, 1], .....]
+    championLists = generate_champion_lists(inverted_index,15)
 
     
     if not os.path.exists(arg2):	# create the directory if not exists
@@ -119,6 +135,10 @@ def main(arg1, arg2):
     with open(arg2+'/freq_list.json', 'w') as f:
         json.dump(tfs, f)
     print('Created successfully: freq_list.json')
+
+    with open(arg2+'/champ_list.json', 'w') as f:
+        json.dump(championLists, f)
+    print('Created successfully: champ_list.json')
     
     with open(arg2+'/titles_list.json', 'w') as f:
         json.dump(titles_list, f)
