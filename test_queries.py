@@ -219,45 +219,6 @@ def improved1(query, inverted_index, freq, title_list):
     print("-"*50)
     print('\n')
 
-def cal_doc_vectors(doc_ids , inverted_index):
-    ''' 
-    Function to calculate and populate vectors for the
-    documents.
-
-    'lnc' scheme used as specified.
-
-    Input: list of document ids, inverted index dictionary
-
-    Output: doc_lnc_df(dataframe) containing document 'lnc' vectors 
-    '''
-    doc_lnc_df = pd.DataFrame(0, index = doc_ids, columns = inverted_index.keys())
-    for word in inverted_index:
-        for docno in inverted_index[word]:
-            doc_lnc_df[word][docno[0]] = 1 + np.log10(docno[1])
-    return doc_lnc_df
-
-def cal_query_vectors(query_terms,inverted_index,total_docs):
-
-    '''
-    Function to calculate and populate query vectors using
-    'ltc' scheme
-
-    Input: vector of query terms, inverted index dictionary,
-    total number of documents
-
-    Output: dataframe containing query vectors with idf weigthing (ltc scheme)
-
-    '''
-    query_ltc_df =  pd.DataFrame(columns = inverted_index.keys())
-    query_ltc_df.loc[0] = np.zeros(len(inverted_index))
-    for word in query_terms:
-        if(word not in inverted_index.keys()):
-            continue
-        query_ltc_df[word] = np.log10((total_docs/len(inverted_index[word])))
-    return query_ltc_df
-    
-
-
 
 
 # GlOVE : 300 dimensional vector representation for every eng word
@@ -361,11 +322,11 @@ def champion_list(query_terms, inverted_index,championLists, freq, top_k,title_l
     Function implementing Improvement #1: Champion Lists
     Returns 'top_k' Document ID's based on cosine similarity.
     '''
+
+    query_terms  = [ word for word in query_terms if word in inverted_index.keys()] #List of terms that are in query as well as posting lists
     query_terms = get_query_terms(query_terms)
-    #query_terms  = [ word for word in query_terms if word in inverted_index.keys()] #List of terms that are in query as well as posting lists
     cl_doc_ids = set()
 
-    print("367 \n")
     for word in query_terms:
         for k in championLists[word]:
             cl_doc_ids.add(k[0]) #we take the union of the champion lists for each of the terms comprising the query. 
@@ -379,25 +340,10 @@ def champion_list(query_terms, inverted_index,championLists, freq, top_k,title_l
 
     scores = compute_scores(query_wt, document_wt)
 
-    for i in range(10):
+    for i in range(top_k):
         if i == len(title_list):
             break
         print(str(i+1) + ". DocumentID: " + (str(cl_doc_ids[scores[i][0]])).ljust(5) + ", Score: " + (str(round(scores[i][1], 3))).ljust(5) + ", Title: " + str(title_list[cl_doc_ids[scores[i][0]]]))
-
-    # print("373 \n")
-    # doc_lnc_df = cal_doc_vectors(cl_doc_ids, inverted_index)
-    # query_ltc_df  = cal_query_vectors(query_terms,inverted_index,len(inverted_index))
-    # print("376 \n")
-
-    # cl_cosine_scores = {}
-
-    # for docs in cl_doc_ids:
-    #     cl_cosine_scores[docs] = 1 - spatial.distance.cosine(doc_lnc_df.loc[docs], query_ltc_df)
-    # print("382 \n")
-
-    # sorted_cosine_cl = sorted(cl_cosine_scores.items(), key=lambda x:x[1])[::-1]
-
-    # return sorted_cosine_cl[:top_k]
 
 def improved2Robust(query, inverted_index, freq, title_list, pklFileName):
     # robust version of improved2() Please check that, only dictionary d is new and enforced
