@@ -171,7 +171,7 @@ if __name__ == "__main__":
         arg1 = sys.argv[1]
         
     except:
-        arg1 = './data/wiki_00'
+        arg1 = './Data/wiki_00'
 	    
     try:
         arg2 = sys.argv[2]

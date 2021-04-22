@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 import nltk
 import string
 from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+nltk.download('stopwords')
 from collections import Counter
 import math
 import numpy
@@ -12,6 +14,9 @@ import json
 import time
 import pandas as pd
 from scipy import spatial
+
+import fasttext
+import fasttext.util
 
 import numpy as np
 from numpy import dot
@@ -221,11 +226,8 @@ def improved1(query, inverted_index, freq, title_list):
 
 
 
-# GlOVE : 300 dimensional vector representation for every eng word
-#For the sake of convenience, the following function gets the vector of a given string from spaCy's vocabulary:
-def vec(s, nlp):
-    #return nlp.vocab[s].vector
-    return nlp(s).vector
+
+
 
 
 # cosine similarity
@@ -235,15 +237,6 @@ def cosine(v1, v2):
     else:
         return 0.0
 
-def spacy_closest(nlp, token_list, vec_to_check, n=10):
-    '''
-    #The following cell defines a function that iterates through a list of tokens and returns the token whose vector is most similar to a given vector.
-    '''
-    return sorted(token_list,
-                  key=lambda x: cosine(vec_to_check, vec(x, nlp)),
-                  reverse=True)[:n]
-
-
 
 def improved2(query, inverted_index, freq, title_list):
     '''
@@ -252,34 +245,41 @@ def improved2(query, inverted_index, freq, title_list):
     	freq: freq of words 
     	title_list: dictionary mapping document id to its title
     '''
-    #Using this function, we can get a list of synonyms, or words closest in meaning (or distribution, depending on how you look at it), 
-    #to any arbitrary word in spaCy's vocabulary. In the following example, we're finding the words in Dracula closest to "basketball":
 
-    nlp = spacy.load('en_core_web_lg') # much bigger corpus than 'sm'
-    #nlp = spacy.load('en_core_web_sm')
-    tokens = inverted_index.keys()
+    # Here we are using Fasttest to get most similar word of a query term to enrich the query vector and give better results. 
+
+    fasttext.util.download_model('en', if_exists='ignore')  # English
+    ft = fasttext.load_model('cc.en.300.bin')
     queryL = Counter()
     n = 3	# Hyper parameter, we have chosen 2 most related words in corpus + the query term itself.
-    # thus total no of query terms now are: 3*M if M was initial query length
+    # # thus total no of query terms now are: 3*M if M was initial query length
     
     query_processed = query_pre_process(query)
-    query_terms = get_query_terms(query_processed)	# a dictionary of counter 
-    
-    for str1 in query_terms :
-        ltemp = []
-        #print(str1)
-        ltemp = spacy_closest(nlp, tokens, vec(str1, nlp), n)
-        #ltemp = 
-        for i in ltemp :
-            queryL[i]=1
-        queryL[str1] = query_terms[str1]
+    query_terms = get_query_terms(query_processed)	# a dictionary of counter
+    eng_stopwords = stopwords.words()
+    count=1
+    for word in query_terms:
+        if not word in eng_stopwords:
+            temp_list = set([word])
+            for item in ft.get_nearest_neighbors(word):
+                if item[1].isalpha() and item[1].lower() not in temp_list:
+                    print(item)
+                    count+=1
+                    temp_list.add(item[1].lower())
+                    if count==n:
+                        count=1
+                        break
+
+            for i in list(temp_list) :
+                queryL[i]=1
+            queryL[word] = query_terms[word]
     
     '''
     search(queryL, inverted_index, freq, title_list)
     '''
     query_terms = queryL
     print("-"*50)
-    print("Query Terms: ", query_terms)
+    print("Query Terms: "+ " ".join(query_terms))
 
     query_wt = get_normalized_query_scores(query_terms, freq, inverted_index)
     document_wt = get_normalized_doc_weights(query_terms, freq, inverted_index)
@@ -348,8 +348,6 @@ def champion_list(query_terms, inverted_index,championLists, freq, top_k,title_l
 def improved2Robust(query, inverted_index, freq, title_list, pklFileName):
     # robust version of improved2() Please check that, only dictionary d is new and enforced
     
-    nlp = spacy.load('en_core_web_lg') # much bigger corpus than 'sm'
-    #nlp = spacy.load('en_core_web_sm')
     tokens = inverted_index.keys()
     queryL = Counter()
     #n = 3	# Hyper parameter, we have chosen 2 most related words in corpus + the query term itself.
@@ -381,7 +379,6 @@ def improved2Robust(query, inverted_index, freq, title_list, pklFileName):
     for str1 in query_terms :
         ltemp = []
         #print(str1)
-        #ltemp = spacy_closest(nlp, tokens, vec(str1, nlp), n)
         ltemp = d1[str1] 
         for i in ltemp :
             queryL[i]=1
@@ -483,6 +480,9 @@ def main():
         
         
         print("Time Taken= %s seconds" %(time.time()-startT))
+        reply = input('\nDo you want to search something else (y/n)\n')
+        if reply == 'n' or reply=="N":
+            break
 
 
 
