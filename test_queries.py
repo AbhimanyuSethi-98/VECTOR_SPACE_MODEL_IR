@@ -368,7 +368,7 @@ def main():
 
     while 1:
         query = input('<Enter your query:>\n')		   
-        option = input('<Enter Option:- \n\t1:Normal Part1 retrieval, \n\t2:Improvement1 BM25, \n\t3:Improvement2 Fasttext, \n\t4:championLists, \n\t5:BM25 + Fasttext, \n\t6:All five \n\t0:exit>\n')
+        option = input('<Enter Option:- \n\t1:Normal Part1 retrieval, \n\t2:Improvement1 BM25, \n\t3:Improvement2 Fasttext, \n\t4:Champion Lists, \n\t5:BM25 + Fasttext, \n\t6:All five \n\t0:exit>\n')
         startTime = time.time()	# to check total time taken
         if option=='1':
             search(query, inverted_index, freq, title_list)		# model1  retrieval model (tf-idf)
