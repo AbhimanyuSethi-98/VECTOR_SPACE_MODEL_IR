@@ -1,6 +1,21 @@
 # VECTOR_SPACE_MODEL_IR
 The objective of this project is to build a vector space-based information retrieval system, and run user-input queries on it with certain improvements implemented on top.
- 
+## Directory Structure
+```bash
+.
+├── indexing.py
+├── test_queries.py
+├── requirements.txt
+├── output.txt
+├── README.md
+├── Data
+│   ├── wiki_00
+├── genFiles
+│   ├── inverted_index_dict.json
+│   ├── freq_list.json
+│   ├── champ_list.json
+│   ├── titles_list.json
+```
 Optionally, create a virtual environment on your system and open it.
 To run the application, first clone the repository by typing the command in git bash.
 
