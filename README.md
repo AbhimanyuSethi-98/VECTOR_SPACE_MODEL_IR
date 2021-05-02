@@ -16,6 +16,8 @@ The objective of this project is to build a vector space-based information retri
 │   ├── champ_list.json
 │   ├── titles_list.json
 ```
+## Instruction to run the code
+
 Optionally, create a virtual environment on your system and open it.
 To run the application, first clone the repository by typing the command in git bash.
 
@@ -53,3 +55,5 @@ Argument 2 contains the name of the directory that will be created (if doesn't e
 To test your queries on the built IR System, run the test_queries.py file as follows:
 
 python  test_queries.py
+
+## Team Members
