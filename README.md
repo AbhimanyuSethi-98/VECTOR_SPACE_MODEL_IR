@@ -34,7 +34,7 @@ Argument 2 contains the name of the directory that will be created (if doesn't e
 
 3) Titles' List, and
 4) Champion Lists, describing the corpus. Default : ./genFiles
-5) 
+
 To test your queries on the built IR System, run the test_queries.py file as follows:
 
 python  test_queries.py
