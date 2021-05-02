@@ -56,4 +56,18 @@ To test your queries on the built IR System, run the test_queries.py file as fol
 
 python  test_queries.py
 
+following which you will be asked to enter your query, the name of the directory containing the generated indexes and lists, and the corresponding option for which method of retrieval you want to run on your query, like so:
+
+1. Normal tf-idf retrieval
+2. BM25 improvement
+3. FastText improvement
+4. Champion Lists
+5. BM25 + FastText
+6. All 5 above
+
 ## Team Members
+1. [Abhimanyu Sethi](https://github.com/AbhimanyuSethi-98)
+2. [Ayush Agrawal](https://github.com/ayush1801)
+3. [Bhavya Gera](https://github.com/bhavyagera10)
+4. [Dhruv Patel](https://github.com/dppatel99)
+5. [Pratyush Goel](https://github.com/GoelPratyush)
