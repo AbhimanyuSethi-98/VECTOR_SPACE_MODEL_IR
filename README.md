@@ -30,7 +30,7 @@ To install the requirements, run the following command:
 ```
 pip install -r requirements.txt
 ```
-
+NOTE: One of the additional (3rd) improvements we implemented was using FastText to generate similar query terms to augment input query. Running this requires an ~8 GB download when running for the first time.
 Install FastText using the following line of code.
 ```
 git clone https://github.com/facebookresearch/fastText.git
