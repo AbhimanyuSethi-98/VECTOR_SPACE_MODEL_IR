@@ -214,7 +214,7 @@ def bm25_improved1(query, inverted_index, freq, title_list):
 
 
 
-def fasttext_improved2(query, inverted_index, freq, title_list):
+def fasttext_improved3(query, inverted_index, freq, title_list):
     '''
     Fasttext to enrich the query with similar words 
     input query: 
@@ -229,7 +229,7 @@ def fasttext_improved2(query, inverted_index, freq, title_list):
     ft = fasttext.load_model('cc.en.300.bin')
     queryL = Counter()
     n = 11	# Hyper parameter, we have chosen 10 most related words + the query term itself. 
-    """ It cannot be more than 11. """
+    """ It cannot be more than 11 by default. """
     # We don't want the model to unnecessarily find similar word for stop words so we remove them
     query_processed = query_pre_process(query)
     query_terms = get_query_terms(query_processed)
@@ -368,26 +368,29 @@ def main():
 
     while 1:
         query = input('<Enter your query:>\n')		   
-        option = input('<Enter Option:- \n\t1:Normal Part1 retrieval, \n\t2:Improvement1 BM25, \n\t3:Improvement2 Fasttext, \n\t4:Champion Lists, \n\t5:BM25 + Fasttext, \n\t6:All five \n\t0:exit>\n')
+        option = input('<Enter Option:- \n\t1:Normal Part1 retrieval, \n\t2:Improvement1 Champion Lists, \n\t3:Improvement2 BM25, \n\t4:Fasttext, \n\t5:BM25 + Fasttext, \n\t6:All five \n\t0:exit>\n')
         startTime = time.time()	# to check total time taken
         if option=='1':
             search(query, inverted_index, freq, title_list)		# model1  retrieval model (tf-idf)
         elif option=='2':
-            bm25_improved1(query, inverted_index, freq, title_list)	# BM25
-        elif option=='3':
-            fasttext_improved2(query, inverted_index, freq, title_list)	# Fasttext            
-        elif option=='4': 
             champion_list(query_pre_process(query), inverted_index, championLists, freq, 10,title_list) #doc_lnc_df,query_ltc_df,10)
+            
+        elif option=='3':
+            bm25_improved1(query, inverted_index, freq, title_list)	# BM25
+                     
+        elif option=='4': 
+            fasttext_improved3(query, inverted_index, freq, title_list)	# Fasttext   
                 	
         elif option=='5':                                      #Improved 3 model BM25 + Fasttext
             fasttext_bm25(query, inverted_index, freq, title_list)
         
         elif option=='6':
             search(query, inverted_index, freq, title_list)		# all 5 tables of 10 docs each retrieved above, together
-            bm25_improved1(query, inverted_index, freq, title_list)
-            fasttext_improved2(query, inverted_index, freq, title_list)
-            fasttext_bm25(query, inverted_index, freq, title_list)
             champion_list(query_pre_process(query), inverted_index, championLists, freq, 10, title_list)
+            bm25_improved1(query, inverted_index, freq, title_list)
+            fasttext_improved3(query, inverted_index, freq, title_list)
+            fasttext_bm25(query, inverted_index, freq, title_list)
+            
 
         elif option=='0' :
             break

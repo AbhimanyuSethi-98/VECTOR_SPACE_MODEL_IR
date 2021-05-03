@@ -64,9 +64,9 @@ python  test_queries.py
 following which you will be asked to enter your query, the name of the directory containing the generated indexes and lists, and the corresponding option for which method of retrieval you want to run on your query, like so:
 
 1. Normal tf-idf retrieval
-2. BM25 improvement
-3. FastText improvement
-4. Champion Lists
+2. Champion Lists
+3. BM25 improvement
+4. FastText improvement
 5. BM25 + FastText
 6. All 5 above
 
