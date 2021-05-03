@@ -7,6 +7,5 @@ tqdm==4.51.0
 urllib3==1.26.1
 soupsieve==2.0
 autocorrect==2.5.0
-pickle-mixin
 simplejson
 termcolor

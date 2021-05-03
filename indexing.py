@@ -1,11 +1,9 @@
 from bs4 import BeautifulSoup
-# import nltk
 import json
 import math
 import numpy
 import os
 import sys
-import pickle
 import string
 from collections import Counter
 from nltk.tokenize import word_tokenize
@@ -120,13 +118,6 @@ def main(arg1, arg2):
     if not os.path.exists(arg2):	# create the directory if not exists
         os.makedirs(arg2)
     
-    '''
-    docs_list = []
-    titles_list = []
-    processed_docs = []
-    tfs = []
-    
-    '''
     # writing all lists and dictionaries generated into a target directory specified in arguments or default
     with open(arg2+'/inverted_index_dict.json', 'w') as f:
         json.dump(inverted_index, f)
@@ -143,27 +134,6 @@ def main(arg1, arg2):
     with open(arg2+'/titles_list.json', 'w') as f:
         json.dump(titles_list, f)
     print('Created successfully: titles_list.json \nCompleted!')
-    
-    ## this is the hardcoded version
-    
-    dict = {}
-    dict['me'] =  ['me', 'me-and', 'myself']
-    dict['enlighten'] =  ['enlighten', 'expound', 'inspire']
-    dict['viral'] = ['viral', 'virus', 'infection'] 
-    dict['foreigner'] = ['foreigner', 'foreigners', 'nationality']
-    dict['main'] = ['main', 'main-sequence', "'main"]
-    dict['poverty'] = ['poverty', 'poverty…by','inequality' ]
-    dict['of'] = ['of', "'of", 'the']
-    dict['cause'] = ['cause', 'causes', 'causing']
-    
-    with open(arg2+ '/relatedWords.pickle', 'wb') as f:
-        pickle.dump(dict, f, protocol=pickle.HIGHEST_PROTOCOL)
-    
-    #with open('relatedWords.pickle', 'rb') as f:
-    #    d = pickle.load(f)
-
-    
-    
 
 
 if __name__ == "__main__":
